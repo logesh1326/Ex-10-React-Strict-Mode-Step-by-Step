@@ -1,0 +1,255 @@
+Ex. 10 React Strict Mode — Step by Step 
+1. What is React Strict Mode? 
+React Strict Mode is a development tool that helps identify potential problems in a React 
+application. 
+It does not affect the production build. 
+It can help detect: 
+• Unsafe or problematic code 
+• Deprecated APIs 
+• Unexpected side effects 
+• Components that are not behaving correctly 
+ 
+2. Import StrictMode 
+In a typical React application, StrictMode is imported from React: 
+import { StrictMode } from "react"; 
+ 
+3. Wrap the Application 
+In main.jsx: 
+import { StrictMode } from "react"; 
+import { createRoot } from "react-dom/client"; 
+import App from "./App.jsx"; 
+ 
+createRoot(document.getElementById("root")).render( 
+  <StrictMode> 
+    <App /> 
+  </StrictMode> 
+); 
+Here: 
+<StrictMode> 
+  <App /> 
+</StrictMode> 
+means that App and its descendants are checked by Strict Mode during development. 
+ 
+4. Create App.jsx 
+function App() { 
+  return ( 
+    <div> 
+      <h1>Hello React</h1> 
+      <p>Strict Mode Example</p> 
+    </div> 
+
+  ); 
+} 
+ 
+export default App; 
+The application works normally, but React performs additional development-time checks. 
+ 
+5. Why Does Strict Mode Render Twice? 
+One thing students often notice is that some functions or component behavior may appear to run 
+twice in development. 
+For example: 
+import { useEffect } from "react"; 
+ 
+function App() { 
+ 
+  useEffect(() => { 
+    console.log("Effect executed"); 
+  }, []); 
+ 
+  return <h1>Hello React</h1>; 
+} 
+ 
+export default App; 
+With Strict Mode enabled, you may see additional execution in the development console. 
+This is intentional. React uses this behavior to help expose side effects that are not properly 
+handled. 
+It is not the same as React rendering your production application twice. 
+ 
+6. Example with useEffect() 
+import { useEffect } from "react"; 
+ 
+function App() { 
+ 
+  useEffect(() => { 
+    console.log("Component effect"); 
+ 
+    return () => { 
+      console.log("Cleanup"); 
+    }; 
+  }, []); 
+ 
+  return ( 
+    <div> 
+      <h1>Strict Mode</h1> 
+    </div> 
+  ); 
+} 
+ 
+export default App; 
+
+With Strict Mode in development, React may perform a sequence conceptually like: 
+Component starts 
+      ↓ 
+Effect runs 
+      ↓ 
+Cleanup runs 
+      ↓ 
+Effect runs again 
+This helps developers find effects that don't properly clean up after themselves. 
+ 
+7. Real Example — Event Listener 
+Consider this code: 
+useEffect(() => { 
+ 
+  const handleResize = () => { 
+    console.log("Window resized"); 
+  }; 
+ 
+  window.addEventListener("resize", handleResize); 
+ 
+}, []); 
+There is a problem: the event listener is never removed. 
+A better version is: 
+useEffect(() => { 
+ 
+  const handleResize = () => { 
+    console.log("Window resized"); 
+  }; 
+ 
+  window.addEventListener("resize", handleResize); 
+ 
+  return () => { 
+    window.removeEventListener("resize", handleResize); 
+  }; 
+ 
+}, []); 
+Why is cleanup important? 
+Add listener 
+     ↓ 
+Component uses listener 
+     ↓ 
+Component removed 
+     ↓ 
+Remove listener 
+Strict Mode can help expose problems like missing cleanup during development. 
+ 
+
+8. Strict Mode with a Counter 
+import { useState } from "react"; 
+ 
+function App() { 
+ 
+  const [count, setCount] = useState(0); 
+ 
+  return ( 
+    <div> 
+      <h1>Count: {count}</h1> 
+ 
+      <button onClick={() => setCount(count + 1)}> 
+        Increase 
+      </button> 
+    </div> 
+  ); 
+} 
+ 
+export default App; 
+Strict Mode does not change how the button should work. 
+Clicking: 
+Increase 
+produces: 
+0 → 1 → 2 → 3 → ... 
+ 
+9. Strict Mode Structure 
+React Application 
+       │ 
+       ▼ 
+  <StrictMode> 
+       │ 
+       ▼ 
+      <App> 
+       │ 
+       ├── Component 1 
+       ├── Component 2 
+       └── Component 3 
+All components inside StrictMode receive its development checks. 
+ 
+10. Important Points 
+✅ Strict Mode is mainly for development 
+It helps developers discover potential problems before production. 
+✅ It does not display anything 
+StrictMode is not a visible UI component. 
+
+✅ It can expose side effects 
+For example: 
+Event listeners 
+Timers 
+Subscriptions 
+Network-related effects 
+✅ It encourages proper cleanup 
+For example: 
+return () => { 
+  // cleanup 
+}; 
+✅ It does not mean production runs everything twice 
+The extra development checks are designed to help identify bugs. 
+ 
+11. Full Vite Example 
+main.jsx 
+import { StrictMode } from "react"; 
+import { createRoot } from "react-dom/client"; 
+import App from "./App.jsx"; 
+ 
+createRoot(document.getElementById("root")).render( 
+  <StrictMode> 
+    <App /> 
+  </StrictMode> 
+); 
+App.jsx 
+import { useEffect, useState } from "react"; 
+ 
+function App() { 
+ 
+  const [count, setCount] = useState(0); 
+ 
+  useEffect(() => { 
+ 
+    console.log("Effect started"); 
+ 
+    return () => { 
+      console.log("Effect cleanup"); 
+    }; 
+ 
+  }, []); 
+ 
+  return ( 
+    <div> 
+      <h1>React Strict Mode</h1> 
+ 
+      <h2>Count: {count}</h2> 
+
+ 
+      <button onClick={() => setCount(count + 1)}> 
+        Increase 
+      </button> 
+    </div> 
+  ); 
+} 
+ 
+export default App; 
+ 
+⭐ Exam Answer 
+What is React Strict Mode? 
+React Strict Mode is a development-only feature that helps identify potential problems, 
+unsafe practices, and unexpected side effects in React components. It is enabled by 
+wrapping components with <StrictMode>. 
+Syntax: 
+import { StrictMode } from "react"; 
+ 
+<StrictMode> 
+  <App /> 
+</StrictMode> 
+Easy concept to remember: 
+Strict Mode = Development checking + Side-effect detection + Better code quality 
+Note: Seeing certain component/effect logic run more than once in development is expected under 
+Strict Mode and is intended to reveal bugs such as missing cleanup. 
+ 
